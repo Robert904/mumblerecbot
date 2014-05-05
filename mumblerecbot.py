@@ -190,20 +190,22 @@ class MumbleRecBot:
                     #create the files
                     audio_file_name = os.path.join(SAVEDIR, "mumble-%s" % time.strftime("%Y%m%d-%H%M%S"))
                     self.audio_file = AudioFile(audio_file_name)
-                    self.chapters = webvtt.WebVtt(audio_file_name + "-chapters.vtt")
-                    self.captions = webvtt.WebVtt(
-                                        audio_file_name + "-captions.vtt",
-                                        regions=[
-                                                "Region: id=left width=50% regionanchor=0%,100% viewportanchor=0%,100%",
-                                                "Region: id=right width=50% regionanchor=100%,100% viewportanchor=100%,100%",
-                                                ]
-                                        )
-                    usernames = list()
-                    for user in self.mumble.users.values():
-                        if user["name"] != USER:
-                            usernames.append(user["name"])
-                    title = "<c.system>Recording started with users {users}".format(users=",".join(usernames))
-                    self.captions.add_cue(title, duration=2)
+                    
+                    if CREATE_WEBVTT:
+                        self.chapters = webvtt.WebVtt(audio_file_name + "-chapters.vtt")
+                        self.captions = webvtt.WebVtt(
+                                            audio_file_name + "-captions.vtt",
+                                            regions=[
+                                                    "Region: id=left width=50% regionanchor=0%,100% viewportanchor=0%,100%",
+                                                    "Region: id=right width=50% regionanchor=100%,100% viewportanchor=100%,100%",
+                                                    ]
+                                            )
+                        usernames = list()
+                        for user in self.mumble.users.values():
+                            if user["name"] != USER:
+                                usernames.append(user["name"])
+                        title = "<c.system>Recording started with users {users}".format(users=",".join(usernames))
+                        self.captions.add_cue(title, duration=2)
 
                 if self.cursor_time < time.time() - BUFFER:  # it's time to check audio
                     base_sound = None
@@ -215,7 +217,7 @@ class MumbleRecBot:
                             user.sound.get_sound(FLOAT_RESOLUTION)  # forget about too old sounds
                         
                         if user.sound.is_sound():
-                            if "caption" not in self.users[session]:
+                            if self.captions is not None and "caption" not in self.users[session]:
                                 self.users[session]["caption"] = self.captions.add_cue("<v {user}>{user}".format(user=user["name"]))
                                 
                             if ( user.sound.first_sound().time >= self.cursor_time and
@@ -226,7 +228,8 @@ class MumbleRecBot:
     
                                 if sound.target == 0:  # take care of the stereo feature
                                     stereo_pcm = audioop.tostereo(sound.pcm, 2, *self.users[session]["stereo"])
-                                    self.users[session]["caption"].set_region(self.users[session]["region"])
+                                    if self.captions is not None:
+                                        self.users[session]["caption"].set_region(self.users[session]["region"])
                                 else:
                                     stereo_pcm = audioop.tostereo(sound.pcm, 2, 1, 1)
                                 if base_sound == None:
@@ -235,7 +238,7 @@ class MumbleRecBot:
                                     #base_sound = audioop.add(base_sound, sound.pcm, 2)
                                     base_sound = self.add_sound(base_sound, stereo_pcm)
                         else:
-                            if "caption" in self.users[session]:
+                            if self.captions is not None and "caption" in self.users[session]:
                                 self.users[session]["caption"].end()
                                 del self.users[session]["caption"]
 

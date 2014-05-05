@@ -6,6 +6,9 @@ DEBUG = False
 #send encoder STDOUT/STDERR to the console
 DEBUG_ENCODER = True
 
+#Creates the caption and chapter webvtt files
+CREATE_WEBVTT = True
+
 SAVEDIR = "c:\\temp"  # folder where to save the recordings
 BUFFER = 0.1  # time to buffer audio input
 PIDFILE = "c:\\temp\\mumblerecbot.pid"  # location to store the process id
@@ -33,9 +36,9 @@ MONO_CHUNK_SIZE = BITRATE * 2 * RESOLUTION / 1000
 STEREO_CHUNK_SIZE = MONO_CHUNK_SIZE * 2 
 
 # command to send the audio in a pipe for external encoding. %s will be replaced by a generated name
-ENCODER = "/usr/bin/oggenc --raw --raw-bits=16 --raw-chan=2 --raw-rate=48000 --quality=4 --quiet -o %s.ogg -"  
+#ENCODER = "/usr/bin/oggenc --raw --raw-bits=16 --raw-chan=2 --raw-rate=48000 --quality=4 --quiet -o %s.ogg -"  
 #ENCODER = "oggenc2 --raw --raw-bits=16 --raw-chan=2 --raw-rate=48000 --quality=4 --quiet -o %s.ogg -"
-#ENCODER = "ffmpeg -f s16le -ar 48000 -ac 2 -i - -c:a libmp3lame -ab 96k -ac 1 -ar 22050 -f rtp rtp://localhost:1935/"
+ENCODER = "ffmpeg -f s16le -ar 48000 -ac 2 -i - -c:a libmp3lame -ab 96k -ac 1 -ar 22050 -f rtp rtp://localhost:1935/"
 
 # comment to be shown in mumble for the recorder user
 COMMENT_SUFFIX = "<br>/start:forced" + \
