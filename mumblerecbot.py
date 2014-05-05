@@ -303,17 +303,31 @@ class AudioFile():
     def __init__(self, name):
         from subprocess import Popen, PIPE
         import wave
+        import sys
         
         self.name = name
         self.type = None
         self.file_obj = None
         
         try:
-            final_name = ENCODER % name
-            proc = Popen(final_name.split(" "), shell=False, bufsize=-1, stdin=PIPE)
+            try:
+                final_name = ENCODER % name
+            except:
+                final_name = ENCODER
+                
+            if DEBUG_ENCODER:
+                stdout = sys.stdout
+                stderr = sys.stderr
+            else:
+                stdout = None
+                stderr = None
+                
+            proc = Popen(final_name.split(" "), shell=False, bufsize=-1, stdin=PIPE, stdout=stdout, stderr=stderr)
             self.file_obj = proc.stdin
             self.type = "pipe"
-        except:
+        except Exception as e:
+            if DEBUG_ENCODER:
+                print("Cannot execute encoder, falling back to wav files: {0}".format(e.strerror))
             self.name += ".wav"
             self.file_obj = wave.open(self.name, "wb")
             self.file_obj.setparams((2, 2, BITRATE, 0, 'NONE', 'not compressed'))
